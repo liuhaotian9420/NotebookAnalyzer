@@ -7,6 +7,7 @@ import functools
 import re
 import gc
 from NotebookParser import NotebookParser
+from NotebookCode import Code, ClassCode
 from collections import Counter, defaultdict
 from anytree import Node, RenderTree, LevelOrderGroupIter
 
@@ -35,6 +36,25 @@ logging_dict = {
 }
 
 
+def logging(func_name):
+    def decorater(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kw):
+            assert func_name in logging_dict.keys(), 'Unknown logging requirement'
+            log_string = func.__name__+'running'
+            if verbose:
+                print(log_string)
+                print(logging_dict[func_name])
+            tmp = func(*args, **kw)
+
+            if verbose:
+                print('finsing running '+func.__name__)
+
+            return tmp
+        return wrapper
+    return decorater
+
+
 class Notebook():
 
     def __init__(self, type='json'):
@@ -48,26 +68,8 @@ class Notebook():
         self.markdown = None
         self.package = None
         self.code = None
-        self.code_block = None
         self.major_code_block = None
-
-    def logging(func_name):
-        def decorater(func):
-            @functools.wraps(func)
-            def wrapper(*args, **kw):
-                assert func_name in logging_dict.keys(), 'Unknown logging requirement'
-                log_string = func.__name__+'running'
-                if verbose:
-                    print(log_string)
-                    print(logging_dict[func_name])
-                tmp = func(*args, **kw)
-
-                if verbose:
-                    print('finsing running '+func.__name__)
-
-                return tmp
-            return wrapper
-        return decorater
+        self.block_code = None
 
     @logging('_load_json')
     def _load_json(self, data):
@@ -131,6 +133,10 @@ class Notebook():
     def _set_content(self, content):
 
         self.content = content
+
+    def get_code(self):
+
+        return self.code
 
     def parse(self, verbose_mode=False):
         '''
@@ -202,7 +208,7 @@ class Notebook():
         codes = self.code.split('\n')
 
         # all the code blocks in the code
-        code_blocks = defaultdict(list)
+        code_blocks = []
 
         indents = defaultdict(list)
         indent_array = []
@@ -224,8 +230,7 @@ class Notebook():
                 if prev >= hdpointer or prev <= tlpointer:
 
                     block_id = (prev, j-prev)
-                    code_blocks[block_counter].append(
-                        {block_id: '\n'.join(codes[prev:j])})
+                    code_blocks.append(block_id)
                     block_counter += 1
                     hdpointer = j
                     tlpointer = prev
@@ -233,3 +238,53 @@ class Notebook():
 
             indents[indent].append(j)
         self.code_block = code_blocks
+
+    def _code_block_analysis(self):
+        '''
+
+        get major block and returns the block titles
+
+        code_blocks is a list of tuples
+
+        '''
+
+        code_blocks = self.code_block
+        assert isinstance(
+            code_blocks, list), 'code_blocks must be a list of tuples'
+        _ = code_blocks.sort(key=lambda x: x[1], reverse=True)
+        edges = set([code_blocks[0][0], code_blocks[0][0]+code_blocks[0][1]])
+        major_block = [edges]
+        # reversely search for the largest edges
+        for edge in code_blocks[1:]:
+            if edge[0] >= max(edges) or edge[0]+edge[1] < min(edges):
+                new_block = set(edge[0], edge[0]+edge[1])
+                edges.update(new_block)
+                major_block.append(new_block)
+
+        codes = self.code.split('\n')
+        block_codes = []
+        block_lines = []
+
+        for start, end in major_block:
+
+            block_lines.extend(list(np.arange(start, end)))
+
+            line = re.sub('\t\(\),', '', codes[start]).split(' ')
+
+            if 'class' in line or 'def' in line:
+
+                block_name = line[1]
+                params = ''.join(line[1:])
+            else:
+                block_name = line[0]
+                params = ''
+
+            block_codes.append(
+                ClassCode('\n'.join(codes[start:end]), block_name, params))
+
+        self.major_code_block = major_block
+        self.block_code = block_codes
+
+        # re-define code
+        self.code = Code('\n'.join(
+            [line for idx, line in self.code.split('\n') if idx not in block_lines]))
