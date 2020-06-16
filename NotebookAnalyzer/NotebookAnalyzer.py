@@ -43,41 +43,6 @@ class Analyzer():
 
         return node_dictionary
 
-    def _code_block_analysis(self, with_code=True):
-        '''
-
-        get major block and returns the block titles
-
-        code_blocks is a list of tuples
-
-        '''
-        major_block_dict = defaultdict(tuple)
-        code_blocks = self.notebook.code_block
-        assert isinstance(
-            code_blocks, list), 'code_blocks must be a list of tuples'
-        _ = code_blocks.sort(key=lambda x: x[1], reverse=True)
-        edges = set([code_blocks[0][0], code_blocks[0][0]+code_blocks[0][1]])
-        major_block = [edges]
-        # reversely search for the largest edges
-        for edge in code_blocks[1:]:
-            if edge[0] >= max(edges) or edge[0]+edge[1] < min(edges):
-                new_block = set(edge[0], edge[0]+edge[1])
-                edges.update(new_block)
-                major_block.append(new_block)
-
-        codes = self.notebook.code.split('\n')
-
-        for start, end in major_block:
-            major_block_dict[start] = (end, codes[start:end])
-
-        if with_code:
-            for start, end in major_block:
-                major_block_dict[start] = (end, codes[start:end])
-        else:
-            major_block_dict = major_block
-
-        return major_block_dict
-
     def _package_analysis(self):
         '''
         extracting packages and track package use
@@ -223,8 +188,7 @@ class NotebookAnalyzer():
         assert analyzers == 'all' or isinstance(
             analyzers, Iterable), 'invalid argument for analyzers'
 
-        analyzers_name = ['code', 'code_block',
-                          'variable', 'package', 'markdown']
+        analyzers_name = ['code', 'variable', 'package', 'markdown']
         if analyzers == 'all':
 
             self.analyzers = analyzers_name
