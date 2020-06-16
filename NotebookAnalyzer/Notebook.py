@@ -45,7 +45,7 @@ def logging(func_name):
             if verbose:
                 print(log_string)
                 print(logging_dict[func_name])
-            tmp = func(*args, **kw)
+            tmp = func(self,*args, **kw)
 
             if verbose:
                 print('finsing running '+func.__name__)
@@ -106,7 +106,6 @@ class Notebook():
 
         global verbose
         verbose = verbose_mode
-
         content = self._load_json(data)
         self._set_content(content)
         self.markdown = self._get_content()['markdown']
