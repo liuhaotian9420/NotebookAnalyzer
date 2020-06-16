@@ -6,3 +6,6 @@ NotebookAnalyzer has several parts:
 1. **Notebook**: reads,loads and automatically parses a .ipynb file
 2. **NotebookParser**: parser,designed for code specificly
 3. **NotebookAnalyzer**: Analyze different parts of the notebook file
+
+
+## Goal of this package is to help analyze different cases of files
