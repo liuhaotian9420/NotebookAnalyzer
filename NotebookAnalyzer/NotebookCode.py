@@ -12,7 +12,7 @@ class Code():
 
     def __repr__(self):
 
-        return self.content
+        return '\n'.join(self.content)
 
     def __iter__(self):
 
@@ -37,8 +37,9 @@ class ClassCode(Code):
     for code that is in class or in def
     '''
 
-    def __init__(self, name, params):
+    def __init__(self, content,name, params):
         super(ClassCode, self).__init__(name)
+        self.content = content.split('\n')
         self.name = name
         self.params = params
 

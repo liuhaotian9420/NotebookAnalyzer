@@ -20,9 +20,13 @@ class NotebookTest(unittest.TestCase):
 
     def test_load(self):
         print('测试Notebook数据的读取')
-        true_data = json.loads(test_json)
-        self.notebook.load(test_json)
-        self.assertEqual(self.notebook.content,true_data)
+        minute_nb = '{"cells":[{"cell_type":"markdown","source":"1"},{"cell_type":"code","source":"2"}]}'
+        print(minute_nb)
+        content = {'markdown':[{'cell_type':'markdown','source':'1'}],'code':[{'cell_type':'code','source':'2'}]}
+        self.notebook.load(minute_nb)
+        self.assertEqual(self.notebook.content, content)
+        self.assertEqual(self.notebook.code,[{'cell_type':'code','source':'2'}])
+        self.assertEqual(self.notebook.markdown,[{'cell_type':'markdown','source':'1'}])
 
 
 if __name__ == '__main__':
