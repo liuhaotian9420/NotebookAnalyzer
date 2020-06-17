@@ -310,7 +310,7 @@ class Notebook():
             if 'class' in line or 'def' in line:
 
                 block_name = line[1]
-                params = ''.join(line[1:])
+                params = ' '.join(line[1:])
             else:
                 block_name = line[0]
                 params = ''
