@@ -57,13 +57,19 @@ def logging(func_name):
 
 class Notebook():
 
-    def __init__(self, type='json'):
+    def __init__(self, type='json',content = None):
         '''
         type: whether the loader is a pandas dataframe or a json object, defaults to json
+        content: when creating a Notebook, initialize with some content
 
         '''
         self.type = type
-        self.content = None
+
+        if not content:
+            self.content = content
+
+        self.parsed = {}
+        
         self.comment = None
         self.markdown = None
         self.package = None
@@ -94,7 +100,8 @@ class Notebook():
 
         return content
 
-    def load(self, data, verbose_mode=False):
+    def _load(self, data, verbose_mode=False):
+
         '''
         loads data into the object, defaults to json
 
@@ -106,10 +113,33 @@ class Notebook():
 
         global verbose
         verbose = verbose_mode
-        content = self._load_json(data)
+
+        if self.type == 'json':
+            try:
+                content = self._load_json(data)
+            except:
+                raise Exception('Notebook requires json files')
+
         self._set_content(content)
         self.markdown = self._get_content()['markdown']
         self.code = self._get_content()['code']
+
+        return self
+
+    def read_notebook(self, data, pipe='all',verbose_mode =False):
+        
+        '''
+        data: external data, must match the type of notebook
+        pipe: pipeline for data processsing, can be a series of strings
+
+        '''
+
+        nb = self._load(data)
+        if pipe =='all':
+            nb = nb._parse()._get_code_block()._code_block_analysis()
+
+        return nb
+
 
     @logging('_to_csv')
     def _to_csv(self, content):
@@ -137,7 +167,7 @@ class Notebook():
 
         return self.code
 
-    def parse(self, verbose_mode=False):
+    def _parse(self, verbose_mode=False):
         '''
         read and parse the code into different sections:
 
@@ -199,7 +229,9 @@ class Notebook():
         self.package = package_dicts
         self.comment = comments
 
-    def get_code_block(self):
+        return self
+
+    def _get_code_block(self):
 
         # counts the number of code blocks
         block_counter = 0
@@ -241,6 +273,7 @@ class Notebook():
 
             indents[indent].append(j)
         self.code_block = code_blocks
+        return self
 
     def _code_block_analysis(self):
         '''
@@ -291,6 +324,8 @@ class Notebook():
         # re-define code
         self.code = Code('\n'.join(
             [line for idx, line in enumerate(self.code.split('\n')) if idx not in block_lines]))
+
+        return self
     
     def _in_current_range(self,tup, current_range):
         t_range = np.arange(tup[0], tup[0]+tup[1])
@@ -302,5 +337,7 @@ class Notebook():
         cr.extend(list(np.arange(tup[0],tup[0]+tup[1])))
         
         return cr
+
+    
         
 
