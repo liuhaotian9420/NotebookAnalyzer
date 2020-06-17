@@ -10,9 +10,17 @@ class Code():
 
         self.content = content.split('\n')
 
+    def _get_content(self):
+        
+        return self.content
+
+    def _reset(self):
+
+        self.pointer = 0
+
     def __repr__(self):
 
-        return self.content
+        return '\n'.join(self.content)
 
     def __iter__(self):
 
@@ -28,7 +36,13 @@ class Code():
 
     def _get_line(self, i):
 
-        return self.content[i]
+        try:
+
+            return self.content[i]
+
+        except IndexError:
+
+            raise StopIteration
 
 
 class ClassCode(Code):
@@ -37,8 +51,9 @@ class ClassCode(Code):
     for code that is in class or in def
     '''
 
-    def __init__(self, name, params):
+    def __init__(self, content,name, params):
         super(ClassCode, self).__init__(name)
+        self.content = content.split('\n')
         self.name = name
         self.params = params
 
