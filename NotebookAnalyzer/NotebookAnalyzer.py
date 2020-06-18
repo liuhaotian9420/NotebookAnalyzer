@@ -104,7 +104,7 @@ class CodeAnalyzer(Analyzer):
                     nodes.update(
                         {var: Node(var, parent=nodes[thing])})
                     
-        return (tracker,nodes)
+        return nodes
 
     def _analysis(self):
         
@@ -286,6 +286,7 @@ class NotebookAnalyzer():
             result = []
             pa = PackageAnalyzer(nb.code, nb.package)
             alias_var, var_alias = pa._package_analysis()
+            print(alias_var)
             result.append((alias_var,var_alias))
 
             if len(nb.block_code):

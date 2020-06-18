@@ -1,5 +1,6 @@
 from NotebookAnalyzer import Notebook
 from NotebookAnalyzer import NotebookAnalyzer
+from NotebookAnalyzer import NotebookStats  as ns
 import pandas as pd
 import json
 import os
@@ -16,9 +17,16 @@ def main():
 
     analyzer = NotebookAnalyzer.NotebookAnalyzer()
     analyzer.load(nb)
-    analyzer.analyze('code')
-    print(len(analyzer.results[0]))
+    codes = analyzer.analyze('code')[0]
 
+    package_analyzer = NotebookAnalyzer.NotebookAnalyzer()
+    package_analyzer.load(nb)
+    pks = package_analyzer.analyze('package')[0]
+
+    for i, pk in enumerate(pks):
+
+        ns.full_analysis(pk[0],pk[1],codes[i][1],nb.package)
+        
 
 
 

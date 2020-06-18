@@ -7,6 +7,7 @@ from anytree import Node, RenderTree, LevelOrderGroupIter
 
 def entity_analysis(node_dictionary):
 
+
     node_dictionary = node_dictionary
 
     root = node_dictionary['root']
@@ -54,8 +55,6 @@ def full_analysis(alias_var, var_alias, var_counter, package_dict):
 
     '''
 
-    alias_var, var_alias, var_counter = alias_var, var_alias, var_counter
-
     alias_package_dict = package_dict
 
     # stats
@@ -63,6 +62,8 @@ def full_analysis(alias_var, var_alias, var_counter, package_dict):
     # 0. package_string:所有package名称的合集
 
     package_string = ''
+    
+    #print(var_counter)
 
     for a, v in alias_var.items():
 
