@@ -240,7 +240,6 @@ class NotebookAnalyzer():
 
         self.notebooks.append(input)
 
-        return input
 
     def analyze(self,analyzer_name):
         '''
@@ -299,4 +298,3 @@ class NotebookAnalyzer():
             self.results.append(result)
             self.notebooks.pop()
 
-        return self.results
