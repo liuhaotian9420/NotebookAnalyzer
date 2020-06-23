@@ -51,11 +51,16 @@ class ClassCode(Code):
     for code that is in class or in def
     '''
 
-    def __init__(self, content,name, params):
+    def __init__(self, content,type, name, params):
         super(ClassCode, self).__init__(name)
         self.content = content.split('\n')
         self.name = name
         self.params = params
+        self.type = type
+
+    def _get_type(self):
+
+        return self.type 
 
     def _get_name(self):
         return self.name
