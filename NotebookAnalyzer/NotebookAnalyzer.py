@@ -304,7 +304,29 @@ class NotebookAnalyzer():
         '''
 
 
-        return self.fit(notebooks,transformed=True)
+        return self.fit(notebooks, transformed=True)
+    
+    def transform(self, notebooks):
+        '''
+
+        only transform notebooks without loading into the analyzer
+
+        '''
+        
+        nb_gen = notebooks
+
+        if self.analyzers == 'all':
+            
+            return list(zip(map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen)))
+
+        if self.analyzers == 'package':
+
+            return list(map(lambda x: self._package_analyze(x), nb_gen))
+
+        if self.analyzers == 'code':
+            
+            return list(map(lambda x: self._code_analyze(x), nb_gen))
+        
 
     def _code_analyze(self,notebook:Notebook):
         '''
