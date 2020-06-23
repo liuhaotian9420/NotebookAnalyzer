@@ -66,6 +66,7 @@ class Notebook():
         self.type = type
 
         if not content:
+
             self.content = content
 
         self.parsed = {}
@@ -73,9 +74,9 @@ class Notebook():
         self.comment = None
         self.markdown = None
         self.package = None
-        self.code = None
-        self.major_code_block = None
-        self.block_code = None
+        self.code = None  # now contains all the original code information
+        self.major_block = None
+        self.code_list = []
 
     @logging('_load_json')
     def _load_json(self, data):
@@ -231,7 +232,7 @@ class Notebook():
 
         return self
 
-    def _get_code_block(self):
+    def _get_code_block(self,pipe = True):
 
         # counts the number of code blocks
         block_counter = 0
@@ -263,17 +264,21 @@ class Notebook():
                 if (prev >= hdpointer or prev <= tlpointer) and all([i>=indent for i in indent_array[prev:j]]):
 
                     block_id = (prev, j - prev)
-                    # print('collapsing between ',prev,' and ',j,';current hdpointer is ',hdpointer,', current tlpointer is ',tlpointer)
                     code_blocks.append(block_id)
                     block_counter += 1
                     hdpointer = j
                     tlpointer = prev
-                    # print('updated hdpointer ',hdpointer,' tlpointer ',tlpointer)
                     indents[indent].remove(prev)
 
             indents[indent].append(j)
-        self.code_block = code_blocks
-        return self
+
+        if pipe:
+
+            return self
+
+        else:
+
+            return code_blocks
 
     def _code_block_analysis(self):
         '''
@@ -284,7 +289,7 @@ class Notebook():
 
         '''
 
-        code_blocks = self.code_block
+        code_blocks = self._get_code_block(pipe=False)
         assert isinstance(
             code_blocks, list), 'code_blocks must be a list of tuples'
         _ = code_blocks.sort(key=lambda x: x[1], reverse=True)
@@ -296,7 +301,7 @@ class Notebook():
                 current_range = self._add_range(current_range, edge)
                 major_block.append((edge[0],edge[0]+edge[1]))
 
-
+        self.major_block = major_block
         codes = self.code.split('\n')
         block_codes = []
         block_lines = []
@@ -309,21 +314,24 @@ class Notebook():
 
             if 'class' in line or 'def' in line:
 
+                block_type = line[0]
                 block_name = line[1]
                 params = ' '.join(line[1:])
             else:
                 block_name = line[0]
+                block_type = block_name
                 params = ''
 
             block_codes.append(
-                ClassCode('\n'.join(codes[start:end]), block_name, params))
+                ClassCode('\n'.join(codes[start:end]), block_type,block_name, params))
 
-        self.major_code_block = major_block
-        self.block_code = block_codes
+
 
         # re-define code
-        self.code = Code('\n'.join(
-            [line for idx, line in enumerate(self.code.split('\n')) if idx not in block_lines]))
+        self.code_list.append(Code('\n'.join(
+            [line for idx, line in enumerate(self.code.split('\n')) if idx not in block_lines])))
+        
+        self.code_list.extend(block_codes)
 
         return self
     

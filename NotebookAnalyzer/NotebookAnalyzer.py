@@ -52,7 +52,7 @@ class Analyzer():
                 continue
             assign = splitted.index('=')
             var = ''.join(splitted[:assign])
-            things = splitted[assign+1:]  # things on rhs of tre assignment
+            things = splitted[assign+1:]  # things on rhs of assignment
             if not keep_original:
                 result[lineNum] = (var, things)
             else:
@@ -221,82 +221,114 @@ class MarkdownAnalyzer(Analyzer):
 
         return header_level, header_content
 
-
-
-
-
 class NotebookAnalyzer():
 
-    def __init__(self):
+    '''
+    Analyzer reads notebook objects and returns analyzed results
 
-        self.analyzers = ''
+
+    '''
+
+    def __init__(self, analyzer_name='all'):
+    
+
+        self.analyzers = analyzer_name
         self.notebooks = []
-        self.results = []
+        self.results = None
+        self.codes = None
 
     def load(self, input:Notebook):
         '''
         import must be a single Notebook
+        reads the header for each code block
+        '''
+        assert len(input.code_list) != 0, 'the notebook contains no code'
+        self.notebooks.append(input)
+        return input
+        
+    def _code_stats(self, func=None):
+
+        '''
+        customize functions for calculating code stats
+
         '''
 
-        self.notebooks.append(input)
+        return map(lambda x:func(x),self.notebooks)    
 
-        return input
+    def _get_code_header(self, notebook: Notebook):
+        
+        cl = notebook.code_list
 
-    def analyze(self,analyzer_name):
+        if len(cl) == 1:
+
+            return None
+        
+        return map(lambda x: x._get_type(), cl[1:])
+
+
+    def fit(self, notebooks,transformed=False ):
+
+        '''
+        
+        reads notebooks, analyze the notebooks with respect to given analyzer_name
+
+        '''
+
+        nb_gen = map(lambda x: self.load(x),notebooks)
+
+        if self.analyzers == 'all':
+            
+            self.results = (zip(map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen)))
+
+        if self.analyzers == 'package':
+
+            self.results = (map(lambda x: self._package_analyze(x), nb_gen))
+
+        if self.analyzers == 'code':
+
+            self.results = (map(lambda x: self._code_analyze(x), nb_gen))
+
+        if not transformed:
+
+            return self
+
+        else:
+            return list(self.results)[0]
+                      
+    def fit_transform(self, notebooks):
+
+        '''
+        fit the analyzer, transform the input notebooks to analyzed results
+
+
+        '''
+
+
+        return self.fit(notebooks,transformed=True)
+
+    def _code_analyze(self,notebook:Notebook):
         '''
         analyzers:
         - names for analyzers,list-like
         '''
+        nb = notebook
+        result = []
+       
+        for code in nb.code_list:
 
+             ca = CodeAnalyzer(code)
+             result.append((ca._analysis(), ca._variable_analysis()))
+             
+        return result
+    
+    def _package_analyze(self, notebook:Notebook):
+        nb = notebook
+        result = []
 
-
-        assert len(self.notebooks)!=0,'There are no notebooks to be analyzed'
-        assert analyzer_name in ['code','package','markdown']
-        nb = self.notebooks[-1]
-        if analyzer_name == 'code':
-
-            # check if there are valid codes and code blocks
-
-            result = []
-
-            if len(nb.code._get_content()):
-                
-                ca = CodeAnalyzer(nb.code)
-                result.append((ca._analysis(),ca._variable_analysis()))
-
-            else:
-
-                result.append(('',''))
-
-
-
-            if len(nb.block_code):
-
-                for cc in nb.block_code:
-
-                    ca = CodeAnalyzer(cc)
-
-                    result.append((ca._analysis(),ca._variable_analysis()))
-            
-            self.results.append(result)
-            self.notebooks.pop()
-
-        if analyzer_name == 'package':
-
-            result = []
-            pa = PackageAnalyzer(nb.code, nb.package)
+        for code in nb.code_list:
+            pa = PackageAnalyzer(code, nb.package)
             alias_var, var_alias = pa._package_analysis()
-            print(alias_var)
-            result.append((alias_var,var_alias))
+            result.append((alias_var, var_alias))
+        return result
 
-            if len(nb.block_code):
 
-                for cc in nb.block_code:
-                    pa = PackageAnalyzer(nb.code, nb.package)
-                    alias_var, var_alias = pa._package_analysis()
-                    result.append((alias_var, var_alias))
-
-            self.results.append(result)
-            self.notebooks.pop()
-
-        return self.results

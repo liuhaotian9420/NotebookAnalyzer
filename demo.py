@@ -14,19 +14,7 @@ test_nb = test_json.query('lab_id=="5d40ff29c143cf002bcc3721"')['ipynb_data'].va
 def main():
     nb = Notebook.Notebook()
     nb = nb.read_notebook(test_nb)
-
     analyzer = NotebookAnalyzer.NotebookAnalyzer()
-    analyzer.load(nb)
-    codes = analyzer.analyze('code')[0]
-
-    package_analyzer = NotebookAnalyzer.NotebookAnalyzer()
-    package_analyzer.load(nb)
-    pks = package_analyzer.analyze('package')[0]
-
-    for i, pk in enumerate(pks):
-
-        ns.full_analysis(pk[0],pk[1],codes[i][1],nb.package)
-        
 
 
 
