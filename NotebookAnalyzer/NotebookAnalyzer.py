@@ -221,10 +221,6 @@ class MarkdownAnalyzer(Analyzer):
 
         return header_level, header_content
 
-
-
-
-
 class NotebookAnalyzer():
 
     '''
@@ -239,6 +235,7 @@ class NotebookAnalyzer():
         self.analyzers = analyzer_name
         self.notebooks = []
         self.results = None
+        self.codes = None
 
     def load(self, input:Notebook):
         '''
@@ -249,13 +246,23 @@ class NotebookAnalyzer():
         self.notebooks.append(input)
         return input
         
+    def _code_stats(self, func=None):
 
+        '''
+        customize functions for calculating code stats
+
+        '''
+
+        return map(lambda x:func(x),self.notebooks)    
+
+    def _get_code_header(self, notebook: Notebook):
         
-    def _get_code_header(self, nb: Notebook):
-        
-        cl = nb.code_list
+        cl = notebook.code_list
+
         if len(cl) == 1:
+
             return None
+        
         return map(lambda x: x._get_type(), cl[1:])
 
 
@@ -287,8 +294,7 @@ class NotebookAnalyzer():
 
         else:
             return list(self.results)[0]
-            
-            
+                      
     def fit_transform(self, notebooks):
 
         '''
@@ -299,7 +305,6 @@ class NotebookAnalyzer():
 
 
         return self.fit(notebooks,transformed=True)
-
 
     def _code_analyze(self,notebook:Notebook):
         '''
