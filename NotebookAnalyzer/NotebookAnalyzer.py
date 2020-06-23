@@ -246,14 +246,19 @@ class NotebookAnalyzer():
         self.notebooks.append(input)
         return input
         
-    def _code_stats(self, func=None):
+    def _code_stats(self, func=None, notebooks=None):
 
         '''
         customize functions for calculating code stats
 
         '''
 
-        return map(lambda x:func(x),self.notebooks)    
+        if notebooks:
+
+            return map(lambda x: func(x), notebooks)
+        else:
+
+            return map(lambda x:func(x),self.notebooks)    
 
     def _get_code_header(self, notebook: Notebook):
         
@@ -278,15 +283,15 @@ class NotebookAnalyzer():
 
         if self.analyzers == 'all':
             
-            self.results = (zip(map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen)))
+            self.results = [map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen))]
 
         if self.analyzers == 'package':
 
-            self.results = (map(lambda x: self._package_analyze(x), nb_gen))
+            self.results = [map(lambda x: self._package_analyze(x), nb_gen)]
 
         if self.analyzers == 'code':
 
-            self.results = (map(lambda x: self._code_analyze(x), nb_gen))
+            self.results = [map(lambda x: self._code_analyze(x), nb_gen)]
 
         if not transformed:
 
@@ -317,15 +322,15 @@ class NotebookAnalyzer():
 
         if self.analyzers == 'all':
             
-            return list(zip(map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen)))
+            return [map(lambda x: self._code_analyze(x), nb_gen), map(lambda x: self._package_analyze(x), nb_gen))]
 
         if self.analyzers == 'package':
 
-            return list(map(lambda x: self._package_analyze(x), nb_gen))
+            return [map(lambda x: self._package_analyze(x), nb_gen)]
 
         if self.analyzers == 'code':
             
-            return list(map(lambda x: self._code_analyze(x), nb_gen))
+            return [map(lambda x: self._code_analyze(x), nb_gen)]
         
 
     def _code_analyze(self,notebook:Notebook):
