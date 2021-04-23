@@ -25,7 +25,7 @@ class NotebookParser():
 
         comment_type:
         - comment_types to be parsed out, a string
-        - available type: 'ns','dq','tq'
+        - available type: 'ns'(#),'dq'(double quote),'tq'(triple quote)
         - default: 'ns'
 
         returns the parsed out comments and the filtered text
